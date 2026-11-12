@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دعوتي - دعوات إلكترونية</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#f4eee5;color:#59432e;
+ font-family:Tahoma,Arial,sans-serif
+}
+header{text-align:center;padding:25px;background:#fffaf1}
+.logo{font-size:35px;color:#aa8146}
+header p{color:#8b765d}
+main{max-width:600px;margin:25px auto;padding:15px}
+.panel{
+ background:white;padding:23px;border-radius:18px;
+ box-shadow:0 5px 25px #0001
+}
+h2{text-align:center;color:#aa8146}
+label{display:block;margin-top:14px}
+input,textarea{
+ width:100%;padding:13px;margin-top:6px;
+ border:1px solid #d9c6a5;border-radius:9px;
+ font-size:16px
+}
+button{
+ width:100%;padding:14px;margin-top:18px;
+ border:0;border-radius:9px;background:#a77d40;
+ color:white;font-size:17px;cursor:pointer
+}
+.green{background:#26834f}
+.card{
+ display:none;margin-top:25px;padding:25px;
+ text-align:center;background:#fffaf0;
+ border:5px double #bd985c;border-radius:15px;
+ line-height:2
+}
+.card h2{font-size:30px}
+.names{font-size:29px;color:#a77d40}
+.ornament{font-size:32px;color:#bb965a}
+.photo{
+ width:100%;height:170px;object-fit:cover;
+ border-radius:10px
+}
+#result{display:none;margin-top:20px;word-break:break-all}
+a{color:#936a31}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">❀ دعوتي ❀</div>
+ <p>اصنع دعوة زفافك وشاركها برابط خاص</p>
+</header>
+
+<main>
+<div class="panel" id="editor">
+ <h2>أنشئ دعوتك الخاصة 💍</h2>
+
+ <label>اسم العريس</label>
+ <input id="groom" placeholder="اسم العريس">
+
+ <label>اسم العروس</label>
+ <input id="bride" placeholder="اسم العروس">
+
+ <label>تاريخ الفرح</label>
+ <input id="date" type="date">
+
+ <label>وقت الفرح</label>
+ <input id="time" type="time">
+
+ <label>مكان الحفل</label>
+ <input id="place" placeholder="اسم القاعة">
+
+ <label>رسالة الدعوة</label>
+ <textarea id="message" rows="3">يشرفنا حضوركم ومشاركتنا أجمل لحظات العمر</textarea>
+
+ <button onclick="createLink()">إنشاء رابط الدعوة ✨</button>
+ <div id="result">
+  <p>🎉 تم إنشاء رابط دعوتك!</p>
+  <input id="inviteLink" readonly>
+  <button class="green" onclick="copyLink()">نسخ الرابط</button>
+  <button onclick="shareLink()">إرسال عبر واتساب</button>
+ </div>
+</div>
+
+<div class="card" id="invitation">
+ <div class="ornament">❀ ✦ ❀</div>
+ <p>بسم الله الرحمن الرحيم</p>
+ <h2>دعوة زفاف</h2>
+ <p>بكل الحب والفرح ندعوكم لحضور زفاف</p>
+ <div class="names" id="names"></div>
+ <img class="photo"
+ src="https://images.unsplash.com/photo-1519741497674-611481863552?w=900"
+ alt="صورة زفاف">
+ <p id="dateView"></p>
+ <p id="timeView"></p>
+ <p id="placeView"></p>
+ <p id="messageView"></p>
+ <div class="ornament">❀ ✦ ❀</div>
+ <p>وجودكم يكمل فرحتنا ❤️</p>
+</div>
+</main>
+
+<script>
+function createLink(){
+ const get=id=>document.getElementById(id).value.trim();
+ const data={
+  groom:get('groom'),
+  bride:get('bride'),
+  date:get('date'),
+  time:get('time'),
+  place:get('place'),
+  message:get('message')
+ };
+ if(!data.groom||!data.bride){
+  alert('اكتب اسم العريس والعروس');
+  return;
+ }
+ const link=location.href.split('#')[0]+
+ '#invite='+encodeURIComponent(JSON.stringify(data));
+ document.getElementById('inviteLink').value=link;
+ document.getElementById('result').style.display='block';
+}
+function copyLink(){
+ const field=document.getElementById('inviteLink');
+ field.select();
+ if(navigator.clipboard){
+  navigator.clipboard.writeText(field.value)
+   .then(()=>alert('تم نسخ رابط الدعوة'));
+ }else{
+  document.execCommand('copy');
+  alert('تم نسخ الرابط');
+ }
+}
+function shareLink(){
+ const link=document.getElementById('inviteLink').value;
+ window.open('https://wa.me/?text='+encodeURIComponent(
+ 'هذه دعوتنا، يسعدنا حضوركم ❤️ '+link
+ ));
+}
+function showInvitation(data){
+ document.getElementById('editor').style.display='none';
+ document.getElementById('invitation').style.display='block';
+ document.getElementById('names').textContent=
+ data.groom+' ♥ '+data.bride;
+ document.getElementById('dateView').textContent=
+ '📅 التاريخ: '+(data.date||'قريباً');
+ document.getElementById('timeView').textContent=
+ '🕒 الوقت: '+(data.time||'سيتم تحديده');
+ document.getElementById('placeView').textContent=
+ '📍 المكان: '+(data.place||'سيتم تحديده');
+ document.getElementById('messageView').textContent=
+ data.message||'يسعدنا حضوركم';
+}
+function loadInvitation(){
+ if(!location.hash.startsWith('#invite='))return;
+ try{
+  const data=JSON.parse(decodeURIComponent(
+   location.hash.slice(8)
+  ));
+  if(!data.groom||!data.bride)return;
+  showInvitation(data);
+ }catch(e){
+  alert('رابط الدعوة غير صالح');
+ }
+}
+loadInvitation();
+</script>
+</body>
+</html>
